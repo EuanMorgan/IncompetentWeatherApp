@@ -1,8 +1,9 @@
-import { StatusBar } from 'expo-status-bar';
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View,Pressable } from 'react-native';
 import { Audio} from "expo-av";
 import {widthPercentageToDP as wp} from "react-native-responsive-screen";
+
+let colours = [];
 
 export default function App() {
 
@@ -28,7 +29,7 @@ export default function App() {
     6: require("./assets/7.mp3"),
   };
 
-  let colours = []
+  
 
   const resetColours = () => {
     colours = [
@@ -50,6 +51,10 @@ export default function App() {
 }
 
   const generateColour = () => {
+    if(colours.length === 0){
+      resetColours()
+    }
+
     let c = colours[Math.floor(Math.random() * colours.length)];
     colours.splice(colours.indexOf(c),1);
     setBg(c)
@@ -58,14 +63,14 @@ export default function App() {
   const loadSounds = async() => {
 
     let random = Math.floor(Math.random()*Object.keys(soundLibrary).length);
-    console.log(soundLibrary[random])
-    const playbackObject1 = await Audio.Sound.createAsync(soundLibrary[random], {
+
+    await Audio.Sound.createAsync(soundLibrary[random], {
       shouldPlay: true,
     })
       .then((res) => {
         res.sound.setOnPlaybackStatusUpdate((status) => {
           if (!status.didJustFinish) return;
-          console.log("Unloading ");
+  
           res.sound.unloadAsync().catch(() => {});
           reset();
           setIsPlaying(false)
@@ -85,7 +90,6 @@ export default function App() {
       onPress={() => {
         if(!isPlaying){
           setIsPlaying(true)
-          resetColours();
           loadSounds();
           generateColour();
         }
