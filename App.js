@@ -1,15 +1,34 @@
 import { StatusBar } from 'expo-status-bar';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View,Pressable } from 'react-native';
-import {Audio} from "expo-av";
+import { Audio} from "expo-av";
+import {widthPercentageToDP as wp} from "react-native-responsive-screen";
 
 export default function App() {
 
+  useEffect(() => {
+    Audio.setAudioModeAsync({
+      playsInSilentModeIOS: true
+    });
+  }, []);
+
   const [bg,setBg] = useState("#000000")
 
-  let colours = []
+  const [rnd, setRnd] = useState(0);
 
-  const [rnd,setRnd] = useState(0)
+  const [isPlaying,setIsPlaying] = useState(false)
+
+  const soundLibrary = {
+    0: require("./assets/1.mp3"),
+    1: require("./assets/2.mp3"),
+    2: require("./assets/3.mp3"),
+    3: require("./assets/4.mp3"),
+    4: require("./assets/5.mp3"),
+    5: require("./assets/6.mp3"),
+    6: require("./assets/7.mp3"),
+  };
+
+  let colours = []
 
   const resetColours = () => {
     colours = [
@@ -38,121 +57,44 @@ export default function App() {
 
   const loadSounds = async() => {
 
-    let random = Math.floor(Math.random()*3);
-    let playbackObject1
-    random = 1;
-    switch(random){
-      case 0:
-         playbackObject1 = await Audio.Sound.createAsync(
-          require("./assets/1.mp3")
-        );
-        break;
-      case 1:
-        playbackObject1 = await Audio.Sound.createAsync(
-          require("./assets/2.mp3")
-        )
-        break;
-      case 2:
-        playbackObject1 = await Audio.Sound.createAsync(
-          require("./assets/3.mp3")
-        );
-        break;
-    }
-
-    playbackObject1.sound.replayAsync();
-    if(random === 1){
-      something()
-    }else if(random ===0){
-      festive()
-      
-    }else if(random === 2){
-      setTimeout(()=>{
-        setBg("#000000")
-        setRnd(Math.random())
-      },3500)
-    }
-    
+    let random = Math.floor(Math.random()*Object.keys(soundLibrary).length);
+    console.log(soundLibrary[random])
+    const playbackObject1 = await Audio.Sound.createAsync(soundLibrary[random], {
+      shouldPlay: true,
+    })
+      .then((res) => {
+        res.sound.setOnPlaybackStatusUpdate((status) => {
+          if (!status.didJustFinish) return;
+          console.log("Unloading ");
+          res.sound.unloadAsync().catch(() => {});
+          reset();
+          setIsPlaying(false)
+        });
+      })
+      .catch((error) => {});           
   }
 
-  const something = () => {
-    setTimeout(() => {
-      generateColour();
-    }, 4400);
-    setTimeout(() => {
-      generateColour();
-    }, 5000);
-    setTimeout(() => {
-      generateColour();
-    }, 5600);
-    setTimeout(() => {
-      generateColour();
-    }, 6200);
-    setTimeout(() => {
-      generateColour();
-    }, 6900);
-    setTimeout(() => {
-      generateColour();
-    }, 7400);
-    setTimeout(() => {
-      setBg("#000000");
-      setRnd(Math.random())
-    }, 7900);
-  }
-
-  const festive = () => {
-    setTimeout(() => {
-      generateColour();
-    }, 700);
-    setTimeout(() => {
-      generateColour();
-    }, 1400);
-    setTimeout(() => {
-      generateColour();
-    }, 2100);
-    setTimeout(() => {
-      generateColour();
-    }, 2900);
-    setTimeout(() => {
-      generateColour();
-    }, 3600);
-    setTimeout(() => {
-      generateColour();
-    }, 4300);
-    setTimeout(() => {
-      generateColour();
-    }, 5000);
-    setTimeout(()=>{
-      generateColour()
-    },5700)
-    setTimeout(() => {
-      generateColour();
-    }, 6400);
-    setTimeout(() => {
-      generateColour();
-    }, 7100);
-    setTimeout(() => {
-      generateColour();
-    }, 7900);
-    setTimeout(() => {
-      setBg("#000000")
-      setRnd(Math.random())
-    }, 9000);
+  const reset = () => {
+    setBg("#000000")
+    setRnd(Math.random())
   }
 
   return (
     <Pressable
       style={[styles.container, { backgroundColor: bg }]}
       onPress={() => {
-        resetColours();
-        loadSounds();
-        generateColour();
+        if(!isPlaying){
+          setIsPlaying(true)
+          resetColours();
+          loadSounds();
+          generateColour();
+        }
       }}
     >
       <View>
-        <Text style={{ fontSize: 40, color: "white" }}>
-          {bg === "#000000" ? "What's the weather?" : "Dunno mate"}
+        <Text style={{ fontSize: wp("8%"), color: "white" }}>
+          {bg === "#000000" ? "What's the weather?" : "I don't know"}
         </Text>
-        <StatusBar style="auto" />
       </View>
     </Pressable>
   );
