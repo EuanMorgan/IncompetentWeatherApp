@@ -5,6 +5,8 @@ import {widthPercentageToDP as wp} from "react-native-responsive-screen";
 
 let colours = [];
 
+let soundOrder = [];
+
 export default function App() {
 
   useEffect(() => {
@@ -27,6 +29,10 @@ export default function App() {
     4: require("./assets/5.mp3"),
     5: require("./assets/6.mp3"),
     6: require("./assets/7.mp3"),
+    7: require("./assets/8.mp3"),
+    8: require("./assets/9.mp3"),
+    9: require("./assets/10.mp3"),
+    10: require("./assets/11.mp3"),
   };
 
   
@@ -50,6 +56,14 @@ export default function App() {
   ];
 }
 
+  const resetSoundOrder = () => {
+    for(let i = 0; i < Object.keys(soundLibrary).length; i++){
+      soundOrder.push(i)
+    }
+    // console.log("Reset Sound Order")
+    // console.log(soundOrder)
+  }
+
   const generateColour = () => {
     if(colours.length === 0){
       resetColours()
@@ -62,7 +76,15 @@ export default function App() {
 
   const loadSounds = async() => {
 
-    let random = Math.floor(Math.random()*Object.keys(soundLibrary).length);
+    if(soundOrder.length === 0){
+      resetSoundOrder()
+    }
+
+    let random = soundOrder[Math.floor(Math.random()*soundOrder.length)];
+    soundOrder.splice(soundOrder.indexOf(random),1);
+
+    // console.log("Now playing: " + random)
+    // console.log(soundOrder)
 
     await Audio.Sound.createAsync(soundLibrary[random], {
       shouldPlay: true,
